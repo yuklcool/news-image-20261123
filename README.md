@@ -8,7 +8,7 @@ Entry for the [make.fun](https://make.fun/bounty/news-image-20261123) **news-ima
 
 ## Overview
 
-A single `1024×1024` newspaper front-page edition (`entry.png`) summarizing **47 verified world news stories** and **4 photo reports** from Monday, 23 November 2026, led by the collapse of UN COP31 climate talks in Antalya, Turkey, alongside coverage across Americas, Europe, Middle East & Africa, Asia-Pacific, Business & Tech, Science & Culture, and In Brief.
+A single `1024×1024` newspaper front-page edition (`entry.png`) summarizing **47 verified world news stories** and **7 photo reports** from Monday, 23 November 2026, led by the collapse of UN COP31 climate talks in Antalya, Turkey, alongside coverage across Americas, Europe, Middle East & Africa, Asia-Pacific, Business & Tech, Science & Culture, and In Brief.
 
 ## Running Locally
 
