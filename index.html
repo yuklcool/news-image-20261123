@@ -1,811 +1,756 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=1024">
-<title>THE WORLD TODAY — Monday 23 November 2026</title>
-<style>
-  * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-  }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=1024, initial-scale=1" />
+  <title>THE WORLD TODAY | Monday 23 November 2026</title>
+  <style>
+    :root {
+      --canvas: #dcd4c4;
+      --sheet: #faf6ee;
+      --tint: #f1eadb;
+      --tint-deep: #e8dec9;
+      --ink: #0f1114;
+      --body: #23262b;
+      --muted: #575249;
+      --rule: #c5baa4;
+      --rule-soft: #d5cbb8;
+      --crimson: #961a1a;
+      --navy: #142b4c;
+      --serif: 'C059', 'P052', 'Nimbus Roman', Georgia, serif;
+      --sans: 'Nimbus Sans', 'DejaVu Sans', Helvetica, Arial, sans-serif;
+    }
 
-  html, body {
-    width: 100%;
-    height: 100%;
-    background: #e5dfd2;
-    font-family: 'Nimbus Sans', 'DejaVu Sans', Arial, Helvetica, sans-serif;
-    color: #141414;
-    -webkit-font-smoothing: antialiased;
-    text-rendering: geometricPrecision;
-  }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  .page {
-    width: 1024px;
-    height: 1024px;
-    margin: 0 auto;
-    background: #f8f4ec;
-    padding: 8px 12px 7px 12px;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    position: relative;
-  }
+    html, body {
+      background: var(--canvas);
+      color: var(--ink);
+      font-family: var(--sans);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: geometricPrecision;
+    }
 
-  /* MASTHEAD */
-  .masthead {
-    border-top: 3px solid #121212;
-    padding-top: 3px;
-    flex-shrink: 0;
-  }
+    .broadsheet {
+      width: 1024px;
+      height: 1024px;
+      margin: 0 auto;
+      padding: 8px 12px 7px;
+      background: var(--sheet);
+      display: grid;
+      grid-template-rows: auto auto 1fr auto auto;
+      gap: 4.5px;
+      overflow: hidden;
+    }
 
-  .masthead-meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 7.4px;
-    font-weight: 700;
-    letter-spacing: 0.9px;
-    text-transform: uppercase;
-    color: #524c42;
-    margin-bottom: 2px;
-  }
+    /* === TOP BANNER / MASTHEAD === */
+    .banner {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      border-top: 3px solid var(--ink);
+      padding-top: 3px;
+    }
 
-  .masthead-title {
-    font-family: 'C059', 'P052', Georgia, 'Nimbus Roman', serif;
-    font-size: 37px;
-    font-weight: 700;
-    letter-spacing: 4px;
-    text-align: center;
-    line-height: 0.96;
-    color: #0d0d0d;
-    margin: 0 0 3.5px 0;
-  }
+    .banner-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 7.6px;
+      font-weight: 700;
+      letter-spacing: 0.95px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
 
-  .masthead-datebar {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 14px;
-    border-top: 1.5px solid #121212;
-    border-bottom: 2.5px solid #121212;
-    background: #ece3d0;
-    padding: 3px 10px;
-    font-size: 14.2px;
-    font-weight: 800;
-    letter-spacing: 2.6px;
-    text-transform: uppercase;
-    color: #121212;
-  }
+    .banner-nameplate {
+      font-family: var(--serif);
+      font-size: 38px;
+      font-weight: 700;
+      letter-spacing: 4.2px;
+      line-height: 0.95;
+      text-align: center;
+      color: var(--ink);
+      padding: 1px 0 2px;
+    }
 
-  .masthead-datebar .date-accent {
-    color: #8f1616;
-  }
+    .banner-ribbon {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      background: var(--tint-deep);
+      border-top: 1.5px solid var(--ink);
+      border-bottom: 2.5px solid var(--ink);
+      padding: 2.5px 10px;
+    }
 
-  .masthead-datebar .date-sep {
-    color: #7a7060;
-    font-weight: 400;
-  }
+    .date-pill {
+      background: var(--crimson);
+      color: #ffffff;
+      font-size: 13.8px;
+      font-weight: 800;
+      letter-spacing: 2.2px;
+      text-transform: uppercase;
+      padding: 1.5px 10px;
+      line-height: 1.15;
+    }
 
-  /* HERO ZONE */
-  .hero {
-    display: grid;
-    grid-template-columns: 548px 1fr;
-    gap: 11px;
-    padding: 6px 0 6px 0;
-    border-bottom: 2.5px solid #121212;
-    flex-shrink: 0;
-  }
+    .edition-tagline {
+      font-size: 12.2px;
+      font-weight: 800;
+      letter-spacing: 2.1px;
+      text-transform: uppercase;
+      color: var(--ink);
+    }
 
-  .lead-story {
-    padding-right: 11px;
-    border-right: 1.5px solid #c2b7a2;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-  }
+    /* === FLAGSHIP HERO ZONE (1 BIG LEAD + 2 FOCAL PHOTO REPORTS) === */
+    .flagship {
+      display: grid;
+      grid-template-columns: 622px 1fr;
+      gap: 11px;
+      padding-bottom: 6px;
+      border-bottom: 2.5px solid var(--ink);
+    }
 
-  .kicker {
-    display: inline-block;
-    font-size: 7.8px;
-    font-weight: 800;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: #ffffff;
-    background: #8f1616;
-    padding: 1.5px 6px;
-    align-self: flex-start;
-    margin-bottom: 3px;
-  }
+    .lead-feature {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      padding-right: 11px;
+      border-right: 1.5px solid var(--rule);
+    }
 
-  .lead-headline {
-    font-family: 'C059', 'P052', Georgia, 'Nimbus Roman', serif;
-    font-size: 25.4px;
-    font-weight: 700;
-    line-height: 1.03;
-    color: #0d0d0d;
-    margin-bottom: 5px;
-    letter-spacing: -0.45px;
-  }
+    .lead-top-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-  .lead-body-row {
-    display: grid;
-    grid-template-columns: 274px 1fr;
-    gap: 9px;
-    align-items: start;
-  }
+    .flag-tag {
+      background: var(--crimson);
+      color: #ffffff;
+      font-size: 7.8px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      flex-shrink: 0;
+    }
 
-  .lead-photo-wrap {
-    display: flex;
-    flex-direction: column;
-  }
+    .flag-subtag {
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.7px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
 
-  .lead-photo {
-    width: 274px;
-    height: 152px;
-    object-fit: cover;
-    object-position: center 45%;
-    display: block;
-    border: 1px solid #2b2824;
-  }
+    .lead-title {
+      font-family: var(--serif);
+      font-size: 28.5px;
+      font-weight: 700;
+      line-height: 1.0;
+      letter-spacing: -0.45px;
+      color: var(--ink);
+    }
 
-  .photo-caption {
-    font-size: 7.1px;
-    line-height: 1.15;
-    color: #544e43;
-    margin-top: 2.5px;
-    font-style: italic;
-  }
+    .lead-split {
+      display: grid;
+      grid-template-columns: 306px 1fr;
+      gap: 10px;
+      align-items: start;
+    }
 
-  .lead-copy {
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-  }
+    .lead-media { display: flex; flex-direction: column; gap: 2.5px; }
 
-  .lead-copy .lead-deck {
-    font-family: 'C059', 'P052', Georgia, serif;
-    font-size: 11.2px;
-    font-weight: 700;
-    line-height: 1.2;
-    color: #111111;
-    margin-bottom: 5px;
-  }
+    .lead-media img {
+      width: 306px;
+      height: 162px;
+      object-fit: cover;
+      object-position: center 45%;
+      display: block;
+      border: 1px solid #2b2926;
+    }
 
-  .lead-copy p {
-    font-size: 9.1px;
-    line-height: 1.27;
-    color: #202020;
-    margin-bottom: 5.5px;
-  }
+    .lead-media figcaption {
+      font-size: 7.2px;
+      line-height: 1.15;
+      color: var(--muted);
+      font-style: italic;
+    }
 
-  .lead-copy .lead-bullet {
-    font-size: 8.85px;
-    line-height: 1.25;
-    color: #1c1c1c;
-    border-top: 1px solid #cfc5b1;
-    padding-top: 5px;
-    margin-bottom: 0;
-  }
+    .lead-prose { display: flex; flex-direction: column; gap: 7px; }
 
-  /* FEATURED 3 PHOTO STORIES */
-  .featured-stack {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    gap: 4.5px;
-  }
+    .lead-summary {
+      font-family: var(--serif);
+      font-size: 12.2px;
+      font-weight: 700;
+      line-height: 1.22;
+      color: var(--ink);
+    }
 
-  .featured-item {
-    display: grid;
-    grid-template-columns: 122px 1fr;
-    gap: 8px;
-    align-items: start;
-    padding-bottom: 4.5px;
-    border-bottom: 1px solid #d2c8b4;
-  }
+    .lead-prose p {
+      font-size: 9.55px;
+      line-height: 1.32;
+      color: var(--body);
+    }
 
-  .featured-item:last-child {
-    padding-bottom: 0;
-    border-bottom: none;
-  }
+    .lead-callout {
+      border-top: 1px solid var(--rule);
+      padding-top: 6px;
+      font-size: 9.25px;
+      line-height: 1.28;
+      color: var(--ink);
+    }
 
-  .featured-photo {
-    width: 122px;
-    height: 67px;
-    object-fit: cover;
-    display: block;
-    border: 1px solid #2b2824;
-  }
+    .dispatch-rail {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 6.5px;
+    }
 
-  .featured-tag {
-    font-size: 7.3px;
-    font-weight: 800;
-    letter-spacing: 0.85px;
-    text-transform: uppercase;
-    color: #8f1616;
-    margin-bottom: 1px;
-  }
+    .focal-card {
+      display: grid;
+      grid-template-columns: 132px 1fr;
+      gap: 9px;
+      align-items: center;
+      background: var(--tint);
+      border: 1px solid var(--rule-soft);
+      border-left: 3px solid var(--navy);
+      padding: 5.5px 7px;
+      flex: 1;
+    }
 
-  .featured-title {
-    font-family: 'C059', 'P052', Georgia, serif;
-    font-size: 11.7px;
-    font-weight: 700;
-    line-height: 1.12;
-    letter-spacing: -0.15px;
-    color: #0d0d0d;
-    margin-bottom: 2px;
-  }
+    .focal-card img {
+      width: 132px;
+      height: 88px;
+      object-fit: cover;
+      display: block;
+      border: 1px solid #2b2926;
+    }
 
-  .featured-desc {
-    font-size: 8.75px;
-    line-height: 1.22;
-    color: #222222;
-  }
+    .focal-kicker {
+      font-size: 7.5px;
+      font-weight: 800;
+      letter-spacing: 0.9px;
+      text-transform: uppercase;
+      color: var(--crimson);
+      margin-bottom: 2px;
+    }
 
-  /* MAIN 3-COLUMN GRID */
-  .main-grid {
-    display: grid;
-    grid-template-columns: 0.96fr 1.08fr 0.96fr;
-    gap: 10px;
-    padding: 5px 0 4.5px 0;
-    flex: 1;
-    min-height: 0;
-  }
+    .focal-card h3 {
+      font-family: var(--serif);
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.11;
+      letter-spacing: -0.15px;
+      color: var(--ink);
+      margin-bottom: 3px;
+    }
 
-  .col {
-    display: flex;
-    flex-direction: column;
-    border-right: 1px solid #c5bba7;
-    padding-right: 10px;
-    min-height: 0;
-    gap: 6px;
-  }
+    .focal-card p {
+      font-size: 8.9px;
+      line-height: 1.24;
+      color: var(--body);
+    }
 
-  .col:last-child {
-    border-right: none;
-    padding-right: 0;
-  }
+    /* === THREE-COLUMN DESK GRID (EVERY COLUMN ILLUSTRATED) === */
+    .desk-grid {
+      display: grid;
+      grid-template-columns: 0.98fr 1.06fr 0.96fr;
+      gap: 10px;
+      min-height: 0;
+    }
 
-  .section-block {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    justify-content: space-between;
-    min-height: 0;
-  }
+    .desk-col {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      border-right: 1px solid var(--rule);
+      padding-right: 10px;
+      min-height: 0;
+    }
 
-  .col-eu-sc .section-block:first-child {
-    flex: 7;
-  }
+    .desk-col:last-child { border-right: none; padding-right: 0; }
 
-  .col-eu-sc .section-block:last-child {
-    flex: 5;
-  }
+    .desk-section {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      flex: 1;
+      min-height: 0;
+    }
 
-  .sec-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: #172e4f;
-    border-left: 3.5px solid #8f1616;
-    padding: 2px 6px;
-    margin-bottom: 2px;
-    flex-shrink: 0;
-  }
+    .desk-col-mid .desk-section:first-child { flex: 7; }
+    .desk-col-mid .desk-section:last-child { flex: 5; }
 
-  .sec-header h2 {
-    font-size: 9.2px;
-    font-weight: 800;
-    letter-spacing: 1.15px;
-    text-transform: uppercase;
-    color: #ffffff;
-  }
+    .desk-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--navy);
+      border-left: 4px solid var(--crimson);
+      padding: 2px 6px;
+      margin-bottom: 2px;
+      flex-shrink: 0;
+    }
 
-  .sec-header .sec-count {
-    font-size: 7px;
-    font-weight: 700;
-    color: #d6dfeb;
-    letter-spacing: 0.5px;
-  }
+    .desk-bar h2 {
+      font-size: 9.4px;
+      font-weight: 800;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: #ffffff;
+    }
 
-  /* INLINE PHOTO STORY CARDS FOR THE 3 NEW PHOTOS */
-  .photo-story {
-    display: grid;
-    grid-template-columns: 93px 1fr;
-    gap: 7px;
-    align-items: start;
-    background: #efe7d7;
-    border: 1px solid #d4cab6;
-    border-left: 3px solid #8f1616;
-    padding: 4px 6px;
-    margin-bottom: 1.5px;
-  }
+    .desk-bar span {
+      font-size: 7px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: #cfdbe9;
+    }
 
-  .inline-photo {
-    width: 93px;
-    height: 62px;
-    object-fit: cover;
-    display: block;
-    border: 1px solid #2b2824;
-  }
+    .photo-feature {
+      display: grid;
+      grid-template-columns: 96px 1fr;
+      gap: 7px;
+      align-items: start;
+      background: var(--tint);
+      border: 1px solid var(--rule-soft);
+      border-left: 3px solid var(--crimson);
+      padding: 4px 6px;
+      margin-bottom: 1.5px;
+    }
 
-  .inline-photo-marquez {
-    object-position: center 22%;
-  }
+    .photo-feature img {
+      width: 96px;
+      height: 64px;
+      object-fit: cover;
+      display: block;
+      border: 1px solid #2b2926;
+    }
 
-  .photo-story .story-head {
-    font-size: 10.5px;
-    line-height: 1.11;
-    margin-bottom: 1.5px;
-  }
+    .photo-feature img.crop-top { object-position: center 20%; }
 
-  .photo-story .story-text {
-    font-size: 8.35px;
-    line-height: 1.19;
-  }
+    .photo-feature h3 {
+      font-family: var(--serif);
+      font-size: 10.6px;
+      font-weight: 700;
+      line-height: 1.1;
+      color: var(--ink);
+      margin-bottom: 1.5px;
+    }
 
-  .story {
-    padding: 2px 0 2.5px 0;
-    border-bottom: 1px dotted #cfc5b1;
-  }
+    .photo-feature p {
+      font-size: 8.35px;
+      line-height: 1.19;
+      color: var(--body);
+    }
 
-  .story:last-child {
-    border-bottom: none;
-    padding-bottom: 0;
-  }
+    .desk-item {
+      padding: 2px 0 2.5px;
+      border-bottom: 1px dotted var(--rule);
+    }
 
-  /* SECTION LEAD ACCENT (placed after .story so padding is preserved) */
-  .story.story-lead {
-    background: #f1eadc;
-    border-left: 3px solid #172e4f;
-    padding: 3.5px 6px 4px 7px;
-    border-bottom: 1px solid #d3cab7;
-  }
+    .desk-item:last-child { border-bottom: none; padding-bottom: 0; }
 
-  .story.story-lead .story-head {
-    font-size: 10.65px;
-  }
+    .desk-item.lead-accent {
+      background: var(--tint);
+      border-left: 3px solid var(--navy);
+      border-bottom: 1px solid var(--rule-soft);
+      padding: 3.5px 6px 4px 7px;
+    }
 
-  .story-head {
-    font-family: 'C059', 'P052', Georgia, serif;
-    font-size: 10.3px;
-    font-weight: 700;
-    line-height: 1.12;
-    color: #0e0e0e;
-    margin-bottom: 1px;
-  }
+    .desk-item h3 {
+      font-family: var(--serif);
+      font-size: 10.35px;
+      font-weight: 700;
+      line-height: 1.12;
+      color: var(--ink);
+      margin-bottom: 1px;
+    }
 
-  .story-text {
-    font-size: 8.45px;
-    line-height: 1.2;
-    color: #242424;
-  }
+    .desk-item.lead-accent h3 { font-size: 10.7px; }
 
-  /* IN BRIEF STRIP */
-  .brief-band {
-    border-top: 2px solid #121212;
-    border-bottom: 1px solid #121212;
-    background: #efe8da;
-    padding: 3.5px 7px 4px 7px;
-    flex-shrink: 0;
-    margin-top: 2px;
-  }
+    .desk-item p {
+      font-size: 8.45px;
+      line-height: 1.19;
+      color: var(--body);
+    }
 
-  .brief-head {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 3px;
-  }
+    /* === SYMMETRIC 4x2 IN BRIEF WIRE STRIP === */
+    .wire-strip {
+      background: var(--tint);
+      border-top: 2px solid var(--ink);
+      border-bottom: 1px solid var(--ink);
+      padding: 3.5px 7px 4px;
+    }
 
-  .brief-badge {
-    font-size: 8.2px;
-    font-weight: 800;
-    letter-spacing: 1.2px;
-    text-transform: uppercase;
-    color: #ffffff;
-    background: #172e4f;
-    padding: 1px 6px;
-  }
+    .wire-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 3px;
+    }
 
-  .brief-rule {
-    flex: 1;
-    height: 1px;
-    background: #bfb5a2;
-  }
+    .wire-label {
+      background: var(--navy);
+      color: #ffffff;
+      font-size: 8.2px;
+      font-weight: 800;
+      letter-spacing: 1.25px;
+      text-transform: uppercase;
+      padding: 1px 6px;
+    }
 
-  .brief-row-top {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    padding-bottom: 3px;
-    margin-bottom: 3px;
-    border-bottom: 1px dotted #c2b7a2;
-  }
+    .wire-line { flex: 1; height: 1px; background: var(--rule); }
 
-  .brief-row-bottom {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 9px;
-  }
+    .wire-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      column-gap: 9px;
+      row-gap: 3px;
+    }
 
-  .brief-item {
-    font-size: 8.2px;
-    line-height: 1.18;
-    color: #222222;
-    border-right: 1px solid #ccc2af;
-    padding-right: 8px;
-  }
+    .wire-cell {
+      font-size: 8.15px;
+      line-height: 1.18;
+      color: var(--body);
+      border-right: 1px solid var(--rule);
+      padding-right: 8px;
+    }
 
-  .brief-item:last-child {
-    border-right: none;
-    padding-right: 0;
-  }
+    .wire-cell:nth-child(4n) { border-right: none; padding-right: 0; }
+    .wire-cell:nth-child(-n+4) {
+      padding-bottom: 3px;
+      border-bottom: 1px dotted var(--rule);
+    }
 
-  .brief-item strong {
-    color: #0e0e0e;
-    font-weight: 700;
-  }
+    .wire-cell b { color: var(--ink); font-weight: 700; }
+    .wire-mark { color: var(--crimson); font-weight: 800; margin-right: 2px; }
 
-  .brief-dot {
-    color: #8f1616;
-    font-weight: 800;
-    margin-right: 2px;
-  }
-
-  /* FOOTER */
-  .footer {
-    margin-top: 4px;
-    background: #121212;
-    color: #f8f4ec;
-    text-align: center;
-    padding: 4.5px 10px;
-    font-size: 9.6px;
-    font-weight: 700;
-    letter-spacing: 1.6px;
-    text-transform: uppercase;
-    flex-shrink: 0;
-  }
-</style>
+    /* === FOOTER COLOPHON === */
+    .colophon {
+      background: var(--ink);
+      color: var(--sheet);
+      text-align: center;
+      font-size: 9.6px;
+      font-weight: 700;
+      letter-spacing: 1.6px;
+      text-transform: uppercase;
+      padding: 4.5px 10px;
+    }
+  </style>
 </head>
 <body>
-<div class="page">
+<div class="broadsheet">
 
-  <!-- MASTHEAD -->
-  <header class="masthead">
-    <div class="masthead-meta">
-      <span>INTERNATIONAL EDITION</span>
+  <header class="banner">
+    <div class="banner-top">
+      <span>INTERNATIONAL FRONT PAGE</span>
       <span>47 VERIFIED WORLD STORIES &bull; 7 PHOTO REPORTS</span>
-      <span>VOL. MMXXVI &bull; NO. 327</span>
+      <span>VOL. MMXXVI &bull; MONDAY EDITION</span>
     </div>
-    <h1 class="masthead-title">THE WORLD TODAY</h1>
-    <div class="masthead-datebar">
-      <span class="date-accent">MONDAY, 23 NOVEMBER 2026</span>
-      <span class="date-sep">&bull;</span>
-      <span>ONE DAY IN WORLD NEWS</span>
+    <h1 class="banner-nameplate">THE WORLD TODAY</h1>
+    <div class="banner-ribbon">
+      <span class="date-pill">MONDAY, 23 NOVEMBER 2026</span>
+      <span class="edition-tagline">WORLD NEWS IN ONE PAGE</span>
     </div>
   </header>
 
-  <!-- HERO ZONE: 1 LEAD + 3 FEATURED PHOTO STORIES = 4 STORIES -->
-  <section class="hero">
-    <!-- Story 1: Lead -->
-    <article class="lead-story">
-      <div>
-        <span class="kicker">CLIMATE SUMMIT &bull; LEAD STORY</span>
-        <h2 class="lead-headline">COP31 Climate Talks Collapse in Turkey</h2>
+  <!-- FLAGSHIP HERO: 1 COMMANDING LEAD + 2 FOCAL PHOTO REPORTS = 3 STORIES -->
+  <section class="flagship">
+    <article class="lead-feature">
+      <div class="lead-top-row">
+        <span class="flag-tag">LEAD STORY &bull; CLIMATE SUMMIT</span>
+        <span class="flag-subtag">ANTALYA, TURKEY &bull; FIRST FULL COLLAPSE SINCE 2009</span>
       </div>
-      <div class="lead-body-row">
-        <div class="lead-photo-wrap">
-          <img class="lead-photo" src="assets/cop31.jpg" alt="UN COP31 climate summit hall in Antalya, Turkey">
-          <div class="photo-caption">UN plenary hall after COP31 talks in Antalya ended in deadlock without a final pact.</div>
-        </div>
-        <div class="lead-copy">
-          <div class="lead-deck">Nearly 200 nations fail to agree on a final climate pact after talks run over 40 hours into overtime.</div>
-          <p>Negotiations in Antalya broke down after the EU, UK, Norway and small-island states rejected a draft text omitting fossil-fuel phaseout language amid fierce pushback from oil producers.</p>
-          <p class="lead-bullet"><strong>UN Warning:</strong> Secretary-General Ant&oacute;nio Guterres blamed fossil-fuel interests and warned the first full summit collapse since 2009 leaves a major global climate void.</p>
+      <h2 class="lead-title">COP31 Climate Talks Collapse in Turkey</h2>
+      <div class="lead-split">
+        <figure class="lead-media">
+          <img src="assets/cop31.jpg" alt="UN COP31 climate plenary hall in Antalya after deadlock" />
+          <figcaption>UN plenary hall in Antalya after COP31 closed without a final climate pact.</figcaption>
+        </figure>
+        <div class="lead-prose">
+          <div class="lead-summary">Nearly 200 nations walk away without a global climate pact after negotiations overrun by more than 40 hours.</div>
+          <p>Talks broke down when the EU, UK, Norway and small-island nations rejected a draft text stripping out fossil-fuel phaseout language under pressure from oil-producing states.</p>
+          <p class="lead-callout"><strong>UN Response:</strong> Secretary-General Ant&oacute;nio Guterres blamed entrenched fossil-fuel interests, warning the breakdown leaves an urgent void in global emissions pledges.</p>
         </div>
       </div>
     </article>
 
-    <!-- Stories 2–4: Featured with Photos -->
-    <div class="featured-stack">
-      <article class="featured-item">
-        <img class="featured-photo" src="assets/capitol.jpg" alt="US Capitol in Washington">
+    <div class="dispatch-rail">
+      <article class="focal-card">
+        <img src="assets/warship.jpg" alt="Russian corvette Merkury smoking and listing after sea-drone strike" />
         <div>
-          <div class="featured-tag">US POLITICS</div>
-          <h3 class="featured-title">Democrats Win 258+ House Seats, Most Since 1992</h3>
-          <p class="featured-desc">A North Carolina recount clinches Democrats' largest US House majority of the century, setting up divided government opposite a Republican White House.</p>
+          <div class="focal-kicker">MEDITERRANEAN &bull; WAR</div>
+          <h3>Russian Corvette <em>Merkury</em> Sinks in Libya Strike</h3>
+          <p>President Zelenskyy confirms Ukrainian sea drones struck and capsized the Russian warship moored at Benghazi naval base, injuring 10; eastern Libya protests at the UN.</p>
         </div>
       </article>
 
-      <article class="featured-item">
-        <img class="featured-photo" src="assets/warship.jpg" alt="Damaged warship at sea with smoke rising">
+      <article class="focal-card">
+        <img src="assets/mercury.jpg" alt="ESA-JAXA BepiColombo spacecraft entering Mercury orbit" />
         <div>
-          <div class="featured-tag">MEDITERRANEAN &bull; WAR</div>
-          <h3 class="featured-title">Russian Corvette <em>Merkury</em> Sinks in Libya Strike</h3>
-          <p class="featured-desc">Zelenskyy confirms Ukrainian sea drones struck and capsized the Russian warship docked at Benghazi naval base, injuring 10; eastern Libya protests at the UN.</p>
-        </div>
-      </article>
-
-      <article class="featured-item">
-        <img class="featured-photo" src="assets/mercury.jpg" alt="BepiColombo spacecraft orbiting Mercury">
-        <div>
-          <div class="featured-tag">SPACE EXPLORATION</div>
-          <h3 class="featured-title">BepiColombo Enters Mercury Orbit After 8 Years</h3>
-          <p class="featured-desc">Joint ESA-JAXA spacecraft executes a 37-minute thruster burn into Mercury orbit, becoming only the second mission in history to achieve the feat.</p>
+          <div class="focal-kicker">SPACE EXPLORATION</div>
+          <h3>BepiColombo Enters Mercury Orbit After 8 Years</h3>
+          <p>The joint ESA-JAXA probe completes a 37-minute thruster burn to enter orbit around the innermost planet, only the second spacecraft ever to reach Mercury orbit.</p>
         </div>
       </article>
     </div>
   </section>
 
-  <!-- MAIN 3-COLUMN REGIONAL & TOPIC GRID: 36 STORIES (#5–#40) -->
-  <main class="main-grid">
+  <!-- THREE-COLUMN REGIONAL & TOPIC DESKS: 36 STORIES (#4-#39), ALL 3 COLUMNS ILLUSTRATED -->
+  <main class="desk-grid">
 
-    <!-- COLUMN 1: AMERICAS (6) + BUSINESS & TECH (6) = 12 -->
-    <div class="col">
-      <section class="section-block">
-        <div class="sec-header">
-          <h2>Americas</h2>
-          <span class="sec-count">6 STORIES</span>
-        </div>
+    <!-- COLUMN 1: AMERICAS (6, PHOTO-LED) + BUSINESS & TECH (6) = 12 -->
+    <div class="desk-col">
+      <section class="desk-section">
+        <div class="desk-bar"><h2>Americas</h2><span>6 STORIES</span></div>
 
-        <article class="story story-lead">
-          <h3 class="story-head">Mexico Captures Drug Lord &lsquo;El Chapo Isidro&rsquo;</h3>
-          <p class="story-text">Special forces arrest FBI top-ten fugitive Fausto Isidro Meza Flores ($5M bounty) in Sinaloa; clashes leave 11 dead as he faces US extradition.</p>
+        <article class="photo-feature">
+          <img src="assets/capitol.jpg" alt="US Capitol building in Washington" />
+          <div>
+            <h3>Democrats Win 258+ House Seats, Most Since 1992</h3>
+            <p>A North Carolina recount secures Democrats' largest US House majority this century, locking in divided government with a GOP White House.</p>
+          </div>
         </article>
 
-        <article class="story">
-          <h3 class="story-head">Trump Warns of New Iran Strikes After New Year</h3>
-          <p class="story-text">US president threatens renewed strikes if indirect talks fail and vows to sink any Iranian ship testing the US naval blockade in the Strait of Hormuz.</p>
+        <article class="desk-item">
+          <h3>Mexico Captures Drug Lord &lsquo;El Chapo Isidro&rsquo;</h3>
+          <p>Mexican forces arrest FBI top-ten fugitive Fausto Isidro Meza Flores ($5M bounty) in Sinaloa; clashes kill 11 as extradition to the US begins.</p>
         </article>
 
-        <article class="story">
-          <h3 class="story-head">Delta Outage Snarls US Thanksgiving Travel</h3>
-          <p class="story-text">Weight-and-balance software glitch triggers an Atlanta ground stop and delays over 1,000 flights, with residual disruption rolling into Monday.</p>
+        <article class="desk-item">
+          <h3>Trump Warns of New Iran Strikes After New Year</h3>
+          <p>President threatens fresh strikes if indirect talks stall and warns US forces will sink Iranian vessels testing the Strait of Hormuz blockade.</p>
         </article>
 
-        <article class="story">
-          <h3 class="story-head">DNC Unveils 12-Debate 2028 Primary Roadmap</h3>
-          <p class="story-text">Fresh off House midterm gains, Democrats set an early primary schedule starting next June as the DOJ admits wrongly deporting a US citizen to Mexico.</p>
+        <article class="desk-item">
+          <h3>Delta Outage Snarls US Thanksgiving Travel</h3>
+          <p>An automated weight-and-balance software failure halts Atlanta flights and delays over 1,000 departures, with spillover rolling into Monday.</p>
         </article>
 
-        <article class="story">
-          <h3 class="story-head">US Spy Chief Defends Trump Calling Putin &lsquo;Friend&rsquo;</h3>
-          <p class="story-text">DNI Jay Clayton says President Trump's phrasing after the Shenzhen trilateral summit is &ldquo;entirely appropriate&rdquo; for nuclear diplomacy.</p>
+        <article class="desk-item">
+          <h3>DNC Unveils 12-Debate 2028 Primary Roadmap</h3>
+          <p>Democrats outline an early primary slate starting next June as the Justice Department acknowledges wrongly deporting a US citizen to Mexico.</p>
         </article>
 
-        <article class="story">
-          <h3 class="story-head">Trump Hosts Gala for Plunging $TRUMP Meme Coin</h3>
-          <p class="story-text">President holds third investor dinner in Virginia as the token trades below $1, drawing fresh ethics backlash from Democrats and watchdogs.</p>
+        <article class="desk-item">
+          <h3>US Spy Chief Defends Trump Calling Putin &lsquo;Friend&rsquo;</h3>
+          <p>DNI Jay Clayton calls the phrasing at the Shenzhen nuclear summit &ldquo;appropriate,&rdquo; while insisting Putin is &ldquo;not America's friend in Ukraine.&rdquo;</p>
         </article>
       </section>
 
-      <section class="section-block">
-        <div class="sec-header">
-          <h2>Business &amp; Tech</h2>
-          <span class="sec-count">6 STORIES</span>
-        </div>
+      <section class="desk-section">
+        <div class="desk-bar"><h2>Business &amp; Tech</h2><span>6 STORIES</span></div>
 
-        <article class="story story-lead">
-          <h3 class="story-head">Asian Stocks Slide as Global AI Tech Rout Deepens</h3>
-          <p class="story-text">South Korea's Kospi drops over 3% Monday after Nasdaq's worst week since 2020; Seoul puts its 10-trillion-won stabilization fund on standby.</p>
+        <article class="desk-item lead-accent">
+          <h3>Asian Stocks Slide as Global AI Tech Rout Deepens</h3>
+          <p>South Korea's Kospi falls over 3% Monday after Nasdaq's worst week since 2020; Seoul puts its 10-trillion-won market fund on standby.</p>
         </article>
 
-        <article class="story">
-          <h3 class="story-head">China Cuts Stock Margin Requirement to 80%</h3>
-          <p class="story-text">Shanghai, Shenzhen and Beijing exchanges ease margin rules from Nov 30, unlocking roughly $60B in liquidity amid global tech sell-off.</p>
+        <article class="desk-item">
+          <h3>China Cuts Stock Margin Requirement to 80%</h3>
+          <p>Shanghai, Shenzhen and Beijing exchanges cut margin minimums effective Nov 30, freeing roughly $60B in liquidity amid tech losses.</p>
         </article>
 
-        <article class="story">
-          <h3 class="story-head">Home Depot Names Richard McPhail CEO</h3>
-          <p class="story-text">Former CFO takes helm on Nov 23 as Ted Decker moves to board chair and Ann-Marie Campbell becomes president and COO.</p>
+        <article class="desk-item">
+          <h3>Home Depot Names Richard McPhail CEO</h3>
+          <p>Longtime CFO takes charge Nov 23 as Ted Decker shifts to board chair and Ann-Marie Campbell steps up as president and COO.</p>
         </article>
 
-        <article class="story">
-          <h3 class="story-head">Leveraged Anthropic ETFs Debut on Nasdaq</h3>
-          <p class="story-text">ProShares and Defiance launch 2x long and short single-stock funds on Nov 23 after Anthropic's $81.3B Nasdaq IPO.</p>
+        <article class="desk-item">
+          <h3>Leveraged Anthropic ETFs Debut on Nasdaq</h3>
+          <p>ProShares and Defiance launch 2x long and inverse single-stock funds on Nov 23 following Anthropic's $81.3B Nasdaq IPO.</p>
         </article>
 
-        <article class="story">
-          <h3 class="story-head">128 Nations Agree to Draft &lsquo;Killer Robot&rsquo; Rules by 2028</h3>
-          <p class="story-text">UN Geneva talks compromise on drafting autonomous-weapon rules as the US, Russia and Israel resist a legally binding ban.</p>
+        <article class="desk-item">
+          <h3>128 Nations Agree to Draft &lsquo;Killer Robot&rsquo; Rules by 2028</h3>
+          <p>UN Geneva delegates agree to craft autonomous-weapons rules even as the US, Russia and Israel oppose a legally binding treaty ban.</p>
         </article>
 
-        <article class="story">
-          <h3 class="story-head">Brent Oil Holds Near $92&ndash;$93 Amid Gulf Risks</h3>
-          <p class="story-text">Strait of Hormuz tanker strikes and Red Sea tensions buoy crude prices while gold slips under a stronger US dollar.</p>
+        <article class="desk-item">
+          <h3>Brent Oil Holds Near $92&ndash;$93 Amid Gulf Risks</h3>
+          <p>Hormuz tanker attacks and Red Sea disruption keep crude elevated while bullion slides against a firmer US dollar.</p>
         </article>
       </section>
     </div>
 
-    <!-- COLUMN 2: EUROPE (7) + SCIENCE & CULTURE (5) = 12 -->
-    <div class="col col-eu-sc">
-      <section class="section-block">
-        <div class="sec-header">
-          <h2>Europe</h2>
-          <span class="sec-count">7 STORIES</span>
-        </div>
+    <!-- COLUMN 2: EUROPE (7, PHOTO-LED) + SCIENCE & CULTURE (5, PHOTO-LED) = 12 -->
+    <div class="desk-col desk-col-mid">
+      <section class="desk-section">
+        <div class="desk-bar"><h2>Europe</h2><span>7 STORIES</span></div>
 
-        <article class="photo-story">
-          <img class="inline-photo" src="assets/kyiv.jpg" alt="Rescuers search collapsed residential building in Kyiv region">
+        <article class="photo-feature">
+          <img src="assets/kyiv.jpg" alt="Emergency rescuers search collapsed residential block in Kyiv region" />
           <div>
-            <h3 class="story-head">Russian Strikes Kill 12 Across Kyiv Region</h3>
-            <p class="story-text">Dymer apartment block collapses alongside hits on a Vyshneve supermarket and Bila Tserkva as Kyiv Oblast marks a Nov 23 Day of Mourning.</p>
+            <h3>Russian Strikes Kill 12 Across Kyiv Region</h3>
+            <p>A five-story Dymer apartment block collapses alongside Vyshneve and Bila Tserkva hits as Kyiv Oblast observes a Nov 23 Day of Mourning.</p>
           </div>
         </article>
 
-        <article class="story">
-          <h3 class="story-head">Zelenskyy Urges US to Release Patriot Missiles</h3>
-          <p class="story-text">After ~2,700 drones, 1,460 glide bombs and 165 missiles in a week, Kyiv warns stalled Patriot deliveries leave cities exposed.</p>
+        <article class="desk-item">
+          <h3>Zelenskyy Urges US to Release Patriot Missiles</h3>
+          <p>After Russia launches ~2,700 drones, 1,460 glide bombs and 165 missiles in seven days, Kyiv warns stalled air-defense deliveries expose cities.</p>
         </article>
 
-        <article class="story">
-          <h3 class="story-head">Poland Confirms 3 Objects Were Russian Kh-101s</h3>
-          <p class="story-text">Cruise missiles breached Polish airspace; PM Donald Tusk calls it intentional provocation as NATO's council meets on air defenses.</p>
+        <article class="desk-item">
+          <h3>Poland Confirms 3 Objects Were Russian Kh-101s</h3>
+          <p>PM Donald Tusk calls the cruise-missile airspace breach an intentional provocation as NATO's council convenes on eastern air defenses.</p>
         </article>
 
-        <article class="story">
-          <h3 class="story-head">Odesa Schools Shift Online After Grid Strikes</h3>
-          <p class="story-text">Russian bombardment cuts power, heat and water across the southern port city, forcing schools into remote classes from Nov 23.</p>
+        <article class="desk-item">
+          <h3>Odesa Schools Shift Online After Grid Strikes</h3>
+          <p>Russian attacks knock out power, heating and water across Ukraine's Black Sea port, moving schools to remote classes from Nov 23.</p>
         </article>
 
-        <article class="story">
-          <h3 class="story-head">Poland, Denmark Reveal Russian Plots on Rapper</h3>
-          <p class="story-text">Authorities confirm Moscow intelligence twice targeted rapper Kyivstoner; Denmark expels Russian defense attach&eacute;.</p>
+        <article class="desk-item">
+          <h3>Poland, Denmark Reveal Russian Plots on Rapper</h3>
+          <p>Security agencies expose two Moscow-linked murder plots targeting Kyivstoner; Copenhagen expels Russia's defense attach&eacute;.</p>
         </article>
 
-        <article class="story">
-          <h3 class="story-head">UK PM Burnham Defends Post-Brexit EU &lsquo;Reset&rsquo;</h3>
-          <p class="story-text">Brussels pact eases food trade, links carbon markets and opens a 100,000-slot youth mobility scheme, sparking sharp Westminster backlash.</p>
+        <article class="desk-item">
+          <h3>UK PM Burnham Defends Post-Brexit EU &lsquo;Reset&rsquo;</h3>
+          <p>Brussels deal eases agri-food checks, links carbon markets and opens a 100,000-slot youth mobility scheme amid fierce Westminster pushback.</p>
         </article>
 
-        <article class="story">
-          <h3 class="story-head">Liverpool Thrash 10-Man Man United 4&ndash;0</h3>
-          <p class="story-text">Early Leny Yoro red card ruins Mauricio Pochettino's Anfield debut as Szoboszlai, Wirtz, Ngumoha and Mu&ntilde;oz leave United 19th.</p>
+        <article class="desk-item">
+          <h3>Liverpool Thrash 10-Man Man United 4&ndash;0</h3>
+          <p>Leny Yoro's early red card sinks Mauricio Pochettino's Anfield debut as Szoboszlai, Wirtz, Ngumoha and Mu&ntilde;oz leave United 19th.</p>
         </article>
       </section>
 
-      <section class="section-block">
-        <div class="sec-header">
-          <h2>Science &amp; Culture</h2>
-          <span class="sec-count">5 STORIES</span>
-        </div>
+      <section class="desk-section">
+        <div class="desk-bar"><h2>Science &amp; Culture</h2><span>5 STORIES</span></div>
 
-        <article class="photo-story">
-          <img class="inline-photo inline-photo-marquez" src="assets/marquez.jpg" alt="Marc Marquez celebrating his 8th MotoGP world title">
+        <article class="photo-feature">
+          <img class="crop-top" src="assets/marquez.jpg" alt="Marc Marquez celebrating his record-tying 8th MotoGP title" />
           <div>
-            <h3 class="story-head">Marc M&aacute;rquez Clinches Record-Tying 8th MotoGP Title</h3>
-            <p class="story-text">Eighth-place finish in Portugal seals a 102-point comeback and equals Giacomo Agostini's premier-class championship record.</p>
+            <h3>Marc M&aacute;rquez Clinches Record-Tying 8th MotoGP Title</h3>
+            <p>An eighth-place ride in Portugal seals a 102-point comeback and ties Giacomo Agostini's all-time premier-class championship mark.</p>
           </div>
         </article>
 
-        <article class="story">
-          <h3 class="story-head">Twice-Yearly RNA Shot Cuts Heart Risks in Trial</h3>
-          <p class="story-text">Novartis and Oxford report Nov 23 topline ORION-4 results showing siRNA drug Leqvio cuts major cardiovascular events in 16,000+ patients.</p>
+        <article class="desk-item">
+          <h3>Twice-Yearly RNA Shot Cuts Heart Risks in Trial</h3>
+          <p>Novartis and Oxford announce Nov 23 topline ORION-4 data showing siRNA drug Leqvio reduces major cardiovascular events across 16,000+ patients.</p>
         </article>
 
-        <article class="story">
-          <h3 class="story-head">USGS Raises Hawaii's K&#299;lauea Alert to Orange</h3>
-          <p class="story-text">Summit inflation and Halema&#699;uma&#699;u vent overflows prompt scientists to warn of imminent lava fountaining through Nov 26.</p>
+        <article class="desk-item">
+          <h3>USGS Raises Hawaii's K&#299;lauea Alert to Orange</h3>
+          <p>Summit inflation and Halema&#699;uma&#699;u overflows prompt geologists to warn of likely lava fountaining through Nov 26.</p>
         </article>
 
-        <article class="story">
-          <h3 class="story-head">Verstappen Wins Chaotic F1 Las Vegas GP</h3>
-          <p class="story-text">Red Bull driver survives 35 lead changes to beat McLaren's Lando Norris and Oscar Piastri for his third Las Vegas win.</p>
+        <article class="desk-item">
+          <h3>Verstappen Wins Chaotic F1 Las Vegas GP</h3>
+          <p>Red Bull's champion navigates 35 lead changes to beat McLaren's Lando Norris and Oscar Piastri for a third Las Vegas triumph.</p>
         </article>
 
-        <article class="story">
-          <h3 class="story-head"><em>We Are Born Good</em> Wins Top Golden Horse Prize</h3>
-          <p class="story-text">Yeung Leung-chuen's drama wins Best Narrative Feature at Taipei's 63rd Golden Horse Awards; Liu Kuan-ting and Angela Yuen take top acting honors.</p>
+        <article class="desk-item">
+          <h3><em>We Are Born Good</em> Wins Top Golden Horse Prize</h3>
+          <p>Yeung Leung-chuen's drama wins Best Narrative Feature at Taipei's 63rd Golden Horse Awards; Liu Kuan-ting and Angela Yuen win acting prizes.</p>
         </article>
       </section>
     </div>
 
-    <!-- COLUMN 3: MIDDLE EAST & AFRICA (6) + ASIA-PACIFIC (6) = 12 -->
-    <div class="col">
-      <section class="section-block">
-        <div class="sec-header">
-          <h2>Middle East &amp; Africa</h2>
-          <span class="sec-count">6 STORIES</span>
-        </div>
+    <!-- COLUMN 3: MIDDLE EAST & AFRICA (6) + ASIA-PACIFIC (6, PHOTO-LED) = 12 -->
+    <div class="desk-col">
+      <section class="desk-section">
+        <div class="desk-bar"><h2>Middle East &amp; Africa</h2><span>6 STORIES</span></div>
 
-        <article class="story story-lead">
-          <h3 class="story-head">Strait of Hormuz Tanker Strikes &amp; Mine Blasts</h3>
-          <p class="story-text">UKMTO logs two tankers struck near Oman and two supertankers damaged by naval mine explosions amid surging US-Iran blockade tensions.</p>
+        <article class="desk-item lead-accent">
+          <h3>Strait of Hormuz Tanker Strikes &amp; Mine Blasts</h3>
+          <p>UKMTO reports two commercial tankers struck near Oman and two supertankers hit by naval mines amid escalating US-Iran blockade friction.</p>
         </article>
 
-        <article class="story">
-          <h3 class="story-head">Drone Strike Hits UN Compound in Khartoum</h3>
-          <p class="story-text">Dawn raid blamed on RSF damages UN premises with staff inside and kills at least four civilians across Sudan's capital area.</p>
+        <article class="desk-item">
+          <h3>Drone Strike Hits UN Compound in Khartoum</h3>
+          <p>A dawn attack blamed on RSF damages UN offices with staff inside and kills at least four civilians in Sudan's capital region.</p>
         </article>
 
-        <article class="story">
-          <h3 class="story-head">WHO: DRC Fighting Disrupts Ebola Response</h3>
-          <p class="story-text">Clashes in Ituri province force hospital workers and patients into a maternity ward for 24 hours, stalling outbreak containment.</p>
+        <article class="desk-item">
+          <h3>WHO: DRC Fighting Disrupts Ebola Response</h3>
+          <p>Ituri province clashes trap clinic workers and patients inside a maternity ward for 24 hours, stalling Ebola containment teams.</p>
         </article>
 
-        <article class="story">
-          <h3 class="story-head">Israel Probes West Bank Settler Arson Raids</h3>
-          <p class="story-text">Overnight settler attacks torch Palestinian homes and cars near Ramallah; Israeli opposition leaders denounce &ldquo;Jewish terrorism.&rdquo;</p>
+        <article class="desk-item">
+          <h3>Israel Probes West Bank Settler Arson Raids</h3>
+          <p>Overnight settler raids torch Palestinian homes and vehicles near Ramallah, drawing sharp condemnation from Israeli opposition leaders.</p>
         </article>
 
-        <article class="story">
-          <h3 class="story-head">South Sudan Attack Kills 24 Civilians</h3>
-          <p class="story-text">Assault attributed to opposition SPLA-IO fighters in Warrap State leaves seven children and six women among the dead.</p>
+        <article class="desk-item">
+          <h3>South Sudan Attack Kills 24 Civilians</h3>
+          <p>An assault blamed on opposition SPLA-IO fighters in Warrap State leaves seven children and six women among the 24 dead.</p>
         </article>
 
-        <article class="story">
-          <h3 class="story-head">Funeral Boat Capsizes in Nigeria, Killing 24</h3>
-          <p class="story-text">Wooden passenger vessel carrying mourners sinks in Bayelsa State after mechanical failure, sparking renewed waterway safety calls.</p>
+        <article class="desk-item">
+          <h3>Funeral Boat Capsizes in Nigeria, Killing 24</h3>
+          <p>A wooden vessel carrying mourners sinks in Bayelsa State after engine failure, renewing calls for inland waterway safety rules.</p>
         </article>
       </section>
 
-      <section class="section-block">
-        <div class="sec-header">
-          <h2>Asia-Pacific</h2>
-          <span class="sec-count">6 STORIES</span>
-        </div>
+      <section class="desk-section">
+        <div class="desk-bar"><h2>Asia-Pacific</h2><span>6 STORIES</span></div>
 
-        <article class="photo-story">
-          <img class="inline-photo" src="assets/shuri.jpg" alt="Restored Shuri Castle Seiden main hall illuminated at dusk in Okinawa">
+        <article class="photo-feature">
+          <img src="assets/shuri.jpg" alt="Restored Shuri Castle Seiden main hall illuminated at twilight in Okinawa" />
           <div>
-            <h3 class="story-head">Okinawa's Restored Shuri Castle Hall Reopens</h3>
-            <p class="story-text">Rebuilt Seiden main hall welcomes visitors on Nov 23, seven years after the 2019 blaze destroyed the Ryukyu Kingdom landmark.</p>
+            <h3>Okinawa's Restored Shuri Castle Hall Reopens</h3>
+            <p>The rebuilt Seiden main hall opens to visitors Nov 23, seven years after the 2019 fire destroyed the Ryukyu Kingdom landmark.</p>
           </div>
         </article>
 
-        <article class="story">
-          <h3 class="story-head">South Korea Education Chief Quits Over AI Chaos</h3>
-          <p class="story-text">Minister Choi Kyo-jin resigns after frantic Suneung anti-AI cheating rules&mdash;sparked by a tax exam scandal&mdash;draw nationwide backlash.</p>
+        <article class="desk-item">
+          <h3>South Korea Education Chief Quits Over AI Chaos</h3>
+          <p>Minister Choi Kyo-jin steps down after frantic Suneung anti-AI exam rules&mdash;triggered by a tax-exam cheating case&mdash;spark public uproar.</p>
         </article>
 
-        <article class="story">
-          <h3 class="story-head">24 Body Bags Found in Indonesia Factory Fire</h3>
-          <p class="story-text">Blaze engulfs a three-story Milkita candy plant in Cikande, Banten; forensic teams run DNA tests to confirm the final death toll.</p>
+        <article class="desk-item">
+          <h3>24 Body Bags Found in Indonesia Factory Fire</h3>
+          <p>Fire guts a three-story Milkita candy plant in Cikande, Banten, leaving forensic teams running DNA tests to confirm the death toll.</p>
         </article>
 
-        <article class="story">
-          <h3 class="story-head">Kim Jong Un: North Korea Seeks Security, Not Hegemony</h3>
-          <p class="story-text">Receiving foreign envoys in Pyongyang, Kim defends nuclear deterrence while rejecting &ldquo;high-handedness and coercion.&rdquo;</p>
+        <article class="desk-item">
+          <h3>Kim Jong Un: North Korea Seeks Security, Not Hegemony</h3>
+          <p>Hosting foreign diplomats in Pyongyang, Kim defends nuclear deterrence while denouncing &ldquo;high-handedness and coercion.&rdquo;</p>
         </article>
 
-        <article class="story">
-          <h3 class="story-head">China Condemns US Ban on Chinese Telecoms</h3>
-          <p class="story-text">Beijing blasts an FCC vote barring China Mobile, Telecom and Unicom from direct US phone-number access as &ldquo;malicious&rdquo; overreach.</p>
+        <article class="desk-item">
+          <h3>China Condemns US Ban on Chinese Telecoms</h3>
+          <p>Beijing criticizes an FCC order blocking China Mobile, Telecom and Unicom from direct US phone-number access as &ldquo;malicious.&rdquo;</p>
         </article>
 
-        <article class="story">
-          <h3 class="story-head">Myanmar Junta Cracks Down on Draft Graft</h3>
-          <p class="story-text">Defense ministry penalizes nearly 200 over extortion and illegal nighttime seizures as the regime's 30th conscription intake begins.</p>
+        <article class="desk-item">
+          <h3>Myanmar Junta Cracks Down on Draft Graft</h3>
+          <p>Military authorities discipline nearly 200 personnel over extortion and illegal nighttime conscription raids as the 30th intake opens.</p>
         </article>
       </section>
     </div>
 
   </main>
 
-  <!-- IN BRIEF: 7 STORIES (#41–#47) -->
-  <section class="brief-band">
-    <div class="brief-head">
-      <span class="brief-badge">In Brief &bull; 7 Stories</span>
-      <span class="brief-rule"></span>
+  <!-- IN BRIEF: 8 STORIES IN CLEAN 4x2 SYMMETRIC GRID (#40-#47) -->
+  <section class="wire-strip">
+    <div class="wire-header">
+      <span class="wire-label">IN BRIEF &bull; 8 STORIES</span>
+      <span class="wire-line"></span>
     </div>
-    <div class="brief-row-top">
-      <div class="brief-item"><span class="brief-dot">&blacksquare;</span><strong>Crimea Bridge Cleanup:</strong> Ukrainian officials say clearing Russia's collapsed Kerch Strait Bridge span could take up to a year.</div>
-      <div class="brief-item"><span class="brief-dot">&blacksquare;</span><strong>Ukraine Oil Strikes:</strong> Kyiv's defense ministry reports eight Russian oil refineries and depots hit in a single week.</div>
-      <div class="brief-item"><span class="brief-dot">&blacksquare;</span><strong>Swedish Jet Held Fire:</strong> Poland discloses a Swedish Gripen pilot aborted shooting down a Russian missile over poor visibility.</div>
-    </div>
-    <div class="brief-row-bottom">
-      <div class="brief-item"><span class="brief-dot">&blacksquare;</span><strong>Houthi Refinery Claim:</strong> Houthis claim a drone-and-missile strike on Saudi Arabia's Petro Rabigh complex.</div>
-      <div class="brief-item"><span class="brief-dot">&blacksquare;</span><strong>Lebanon School Row:</strong> PM Nawaf Salam condemns an Israeli army video visit to a southern Lebanon school.</div>
-      <div class="brief-item"><span class="brief-dot">&blacksquare;</span><strong>LPGA Records Fall:</strong> Yamashita wins Vare Trophy as Korda and Thitikul pass S&ouml;renstam's career earnings.</div>
-      <div class="brief-item"><span class="brief-dot">&blacksquare;</span><strong>GTA VI Launch Mark:</strong> Take-Two's hit tops $3.79B in day-one sales and 32.5M pre-orders, biggest debut ever.</div>
+    <div class="wire-grid">
+      <div class="wire-cell"><span class="wire-mark">&blacksquare;</span><b>$TRUMP Coin Gala:</b> Trump hosts third Virginia investor dinner as token sits under $1, sparking ethics pushback.</div>
+      <div class="wire-cell"><span class="wire-mark">&blacksquare;</span><b>Crimea Bridge Span:</b> Kyiv officials estimate clearing Russia's downed Kerch Strait Bridge section could take a year.</div>
+      <div class="wire-cell"><span class="wire-mark">&blacksquare;</span><b>Ukraine Oil Strikes:</b> Kyiv reports eight Russian refineries and fuel depots hit over the past week.</div>
+      <div class="wire-cell"><span class="wire-mark">&blacksquare;</span><b>Swedish Jet Held Fire:</b> Poland says a Swedish Gripen aborted downing a Russian missile due to low visibility.</div>
+      <div class="wire-cell"><span class="wire-mark">&blacksquare;</span><b>Houthi Refinery Claim:</b> Yemen's Houthis claim a drone-and-missile attack on Saudi Arabia's Petro Rabigh site.</div>
+      <div class="wire-cell"><span class="wire-mark">&blacksquare;</span><b>Lebanon School Row:</b> PM Nawaf Salam condemns an Israeli military video recorded inside a southern Lebanon school.</div>
+      <div class="wire-cell"><span class="wire-mark">&blacksquare;</span><b>LPGA Records Fall:</b> Yamashita wins Vare Trophy as Korda and Thitikul pass S&ouml;renstam's career earnings.</div>
+      <div class="wire-cell"><span class="wire-mark">&blacksquare;</span><b>GTA VI Launch Mark:</b> Take-Two's hit tops $3.79B in day-one sales and 32.5M pre-orders, biggest debut ever.</div>
     </div>
   </section>
 
-  <!-- FOOTER -->
-  <footer class="footer">
+  <footer class="colophon">
     ALL 47 STORIES HAPPENED OR WERE FIRST REPORTED ON MONDAY 23 NOVEMBER 2026
   </footer>
 
