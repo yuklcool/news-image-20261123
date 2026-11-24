@@ -3,143 +3,163 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const VALID_PNG_COLOR_TYPES = new Set([0, 2, 3, 4, 6]);
-const VALID_PNG_BIT_DEPTHS = new Set([1, 2, 4, 8, 16]);
+const PNG_LIMIT_BYTES = 1024 * 1024;
+const REQUIRED_PX = 1024;
+const PNG_MAGIC = Buffer.from("89504e470d0a1a0a", "hex");
 
-interface PngMetadata {
-  width: number;
-  height: number;
-  bitDepth: number;
-  colorType: number;
-  chunkCount: number;
-  byteLength: number;
+const ALLOWED_DEPTHS_BY_COLOR: Readonly<Record<number, readonly number[]>> = {
+  0: [1, 2, 4, 8, 16],
+  2: [8, 16],
+  3: [1, 2, 4, 8],
+  4: [8, 16],
+  6: [8, 16],
+};
+
+interface AuditedPng {
+  readonly width: number;
+  readonly height: number;
+  readonly bitDepth: number;
+  readonly colorType: number;
+  readonly totalChunks: number;
+  readonly idatChunks: number;
+  readonly idatBytes: number;
+  readonly sha256: string;
 }
 
-const ENTRY_MAX_BYTES = 1_048_576;
-const EXPECTED_SIDE = 1024;
-const MAGIC_HEADER = Uint8Array.from([137, 80, 78, 71, 13, 10, 26, 10]);
+class PngAudit {
+  private static readonly crcTable: Uint32Array = PngAudit.makeCrcTable();
 
-function buildCrcLookup(): Uint32Array {
-  const lookup = new Uint32Array(256);
-  for (let byte = 0; byte < 256; byte += 1) {
-    let reg = byte;
-    for (let bit = 0; bit < 8; bit += 1) {
-      reg = reg & 1 ? 0xedb88320 ^ (reg >>> 1) : reg >>> 1;
-    }
-    lookup[byte] = reg >>> 0;
-  }
-  return lookup;
-}
-
-const CRC_LOOKUP = buildCrcLookup();
-
-function crc32Bytes(slice: Uint8Array): number {
-  let state = 0xffffffff;
-  for (let idx = 0; idx < slice.length; idx += 1) {
-    state = CRC_LOOKUP[(state ^ slice[idx]) & 0xff] ^ (state >>> 8);
-  }
-  return (state ^ 0xffffffff) >>> 0;
-}
-
-function hasValidMagic(raw: Buffer): boolean {
-  if (raw.length < MAGIC_HEADER.length) return false;
-  for (let i = 0; i < MAGIC_HEADER.length; i += 1) {
-    if (raw[i] !== MAGIC_HEADER[i]) return false;
-  }
-  return true;
-}
-
-function inspectPngPayload(raw: Buffer): PngMetadata {
-  if (raw.length === 0 || raw.length > ENTRY_MAX_BYTES) {
-    throw new Error(`PNG size ${raw.length} outside allowed range 1..${ENTRY_MAX_BYTES}`);
-  }
-  if (!hasValidMagic(raw)) {
-    throw new Error("Source artifact lacks a valid 8-byte PNG signature");
-  }
-
-  let cursor = MAGIC_HEADER.length;
-  let chunkCount = 0;
-  let width = 0;
-  let height = 0;
-  let bitDepth = 0;
-  let colorType = 0;
-  let hasIdat = false;
-  let terminated = false;
-
-  while (cursor + 12 <= raw.length) {
-    const dataLen = raw.readUInt32BE(cursor);
-    const kind = raw.toString("ascii", cursor + 4, cursor + 8);
-    const nextCursor = cursor + 12 + dataLen;
-    if (nextCursor > raw.length) {
-      throw new Error(`PNG chunk ${kind} truncated past end of buffer`);
-    }
-
-    const storedCrc = raw.readUInt32BE(nextCursor - 4);
-    const calcCrc = crc32Bytes(raw.subarray(cursor + 4, nextCursor - 4));
-    if (storedCrc !== calcCrc) {
-      throw new Error(`Checksum failure in PNG chunk ${kind} at byte ${cursor}`);
-    }
-
-    if (chunkCount === 0) {
-      if (kind !== "IHDR" || dataLen !== 13) {
-        throw new Error(`First PNG chunk must be 13-byte IHDR, got ${kind} (${dataLen})`);
+  private static makeCrcTable(): Uint32Array {
+    const tbl = new Uint32Array(256);
+    for (let n = 0; n < 256; n += 1) {
+      let val = n;
+      for (let step = 0; step < 8; step += 1) {
+        val = (val & 1) === 1 ? 0xedb88320 ^ (val >>> 1) : val >>> 1;
       }
-      width = raw.readUInt32BE(cursor + 8);
-      height = raw.readUInt32BE(cursor + 12);
-      bitDepth = raw[cursor + 16];
-      colorType = raw[cursor + 17];
-      const compression = raw[cursor + 18];
-      const filterMethod = raw[cursor + 19];
-      if (compression !== 0 || filterMethod !== 0) {
-        throw new Error(`Unsupported PNG compression/filter (${compression}/${filterMethod})`);
+      tbl[n] = val >>> 0;
+    }
+    return tbl;
+  }
+
+  private static checksum(segment: Uint8Array): number {
+    let acc = 0xffffffff;
+    const table = PngAudit.crcTable;
+    for (let i = 0; i < segment.length; i += 1) {
+      acc = table[(acc ^ segment[i]) & 0xff] ^ (acc >>> 8);
+    }
+    return (acc ^ 0xffffffff) >>> 0;
+  }
+
+  public static validate(buf: Buffer): AuditedPng {
+    if (buf.byteLength === 0 || buf.byteLength > PNG_LIMIT_BYTES) {
+      throw new Error(`Artifact byte length ${buf.byteLength} violates 1..${PNG_LIMIT_BYTES} limit`);
+    }
+    if (buf.byteLength < PNG_MAGIC.byteLength || !buf.subarray(0, 8).equals(PNG_MAGIC)) {
+      throw new Error("Artifact does not start with an ISO PNG magic signature");
+    }
+
+    let pos = PNG_MAGIC.byteLength;
+    let totalChunks = 0;
+    let idatChunks = 0;
+    let idatBytes = 0;
+    let sawPlte = false;
+    let width = 0;
+    let height = 0;
+    let bitDepth = 0;
+    let colorType = 0;
+    let finished = false;
+
+    while (pos + 12 <= buf.byteLength) {
+      const len = buf.readUInt32BE(pos);
+      const tag = buf.toString("ascii", pos + 4, pos + 8);
+      const end = pos + 12 + len;
+      if (end > buf.byteLength) {
+        throw new Error(`Chunk ${tag} overflows file boundary at byte ${pos}`);
+      }
+
+      const fileCrc = buf.readUInt32BE(end - 4);
+      const bodyCrc = PngAudit.checksum(buf.subarray(pos + 4, end - 4));
+      if (fileCrc !== bodyCrc) {
+        throw new Error(`CRC-32 mismatch inside chunk ${tag} at byte ${pos}`);
+      }
+
+      if (totalChunks === 0) {
+        if (tag !== "IHDR" || len !== 13) {
+          throw new Error(`Expected leading 13-byte IHDR chunk, found ${tag} (${len} bytes)`);
+        }
+        width = buf.readUInt32BE(pos + 8);
+        height = buf.readUInt32BE(pos + 12);
+        bitDepth = buf[pos + 16];
+        colorType = buf[pos + 17];
+        const comp = buf[pos + 18];
+        const filt = buf[pos + 19];
+        const interlace = buf[pos + 20];
+        if (comp !== 0 || filt !== 0 || (interlace !== 0 && interlace !== 1)) {
+          throw new Error(`Invalid IHDR flags comp=${comp} filt=${filt} interlace=${interlace}`);
+        }
+        const allowed = ALLOWED_DEPTHS_BY_COLOR[colorType];
+        if (!allowed || !allowed.includes(bitDepth)) {
+          throw new Error(`Unsupported PNG colorType=${colorType} with bitDepth=${bitDepth}`);
+        }
+      } else if (tag === "IHDR") {
+        throw new Error("Duplicate IHDR chunk detected");
+      }
+
+      if (tag === "PLTE") sawPlte = true;
+      if (tag === "IDAT") {
+        idatChunks += 1;
+        idatBytes += len;
+      }
+      totalChunks += 1;
+      pos = end;
+
+      if (tag === "IEND") {
+        if (len !== 0) {
+          throw new Error(`IEND chunk must be empty, got ${len} bytes`);
+        }
+        finished = true;
+        break;
       }
     }
 
-    if (kind === "IDAT") hasIdat = true;
-    chunkCount += 1;
-    cursor = nextCursor;
-
-    if (kind === "IEND") {
-      if (dataLen !== 0) throw new Error("PNG IEND chunk must have zero payload bytes");
-      terminated = true;
-      break;
+    if (!finished || idatChunks === 0 || idatBytes === 0 || pos !== buf.byteLength) {
+      throw new Error("Incomplete PNG chunk stream or trailing bytes present after IEND");
     }
-  }
+    if (colorType === 3 && !sawPlte) {
+      throw new Error("Indexed-color PNG is missing required PLTE palette chunk");
+    }
+    if (width !== REQUIRED_PX || height !== REQUIRED_PX) {
+      throw new Error(`PNG dimensions ${width}x${height} do not match required ${REQUIRED_PX}x${REQUIRED_PX}`);
+    }
 
-  if (!terminated || !hasIdat || cursor !== raw.length) {
-    throw new Error("PNG payload is incomplete or has trailing bytes after IEND");
-  }
-  if (width !== EXPECTED_SIDE || height !== EXPECTED_SIDE) {
-    throw new Error(`Expected ${EXPECTED_SIDE}x${EXPECTED_SIDE} PNG, got ${width}x${height}`);
-  }
-  if (!VALID_PNG_COLOR_TYPES.has(colorType) || !VALID_PNG_BIT_DEPTHS.has(bitDepth)) {
-    throw new Error(`Invalid PNG colorType=${colorType} or bitDepth=${bitDepth}`);
-  }
-
-  return { width, height, bitDepth, colorType, chunkCount, byteLength: raw.length };
-}
-
-function sha256Hex(payload: Buffer): string {
-  return createHash("sha256").update(payload).digest("hex");
-}
-
-function run(): void {
-  const repoRoot = dirname(fileURLToPath(import.meta.url));
-  const inputPath = resolve(repoRoot, "entry.png");
-  const outRoot = resolve(process.env.MAKEFUN_OUTPUT_DIR ?? "/output");
-  const outPath = join(outRoot, "entry.png");
-
-  const imageBytes = readFileSync(inputPath);
-  inspectPngPayload(imageBytes);
-  const expectedDigest = sha256Hex(imageBytes);
-
-  mkdirSync(outRoot, { recursive: true });
-  writeFileSync(outPath, imageBytes);
-
-  const writtenDigest = sha256Hex(readFileSync(outPath));
-  if (writtenDigest !== expectedDigest) {
-    throw new Error("Written entry.png digest does not match verified source artifact");
+    const sha256 = createHash("sha256").update(buf).digest("hex");
+    return { width, height, bitDepth, colorType, totalChunks, idatChunks, idatBytes, sha256 };
   }
 }
 
-run();
+function ensureDeterministicWrite(destination: string, expected: Buffer, expectedHash: string): void {
+  writeFileSync(destination, expected);
+  const emitted = readFileSync(destination);
+  if (!emitted.equals(expected)) {
+    throw new Error("Emitted output bytes differ from validated source artifact");
+  }
+  const verifyHash = createHash("sha256").update(emitted).digest("hex");
+  if (verifyHash !== expectedHash) {
+    throw new Error("Post-write SHA-256 verification failed");
+  }
+}
+
+function writeVerifiedArtifact(): void {
+  const baseDir = dirname(fileURLToPath(import.meta.url));
+  const sourceFile = resolve(baseDir, "entry.png");
+  const targetDir = resolve(process.env.MAKEFUN_OUTPUT_DIR || "/output");
+  const targetFile = join(targetDir, "entry.png");
+
+  const payload = readFileSync(sourceFile);
+  const audit = PngAudit.validate(payload);
+
+  mkdirSync(targetDir, { recursive: true });
+  ensureDeterministicWrite(targetFile, payload, audit.sha256);
+}
+
+writeVerifiedArtifact();
